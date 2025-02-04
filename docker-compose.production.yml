@@ -1,0 +1,42 @@
+services:
+  gateway:
+    image: sentinelx10/kittygram-2-gateway
+    ports:
+      - "9000:80"
+    volumes:
+      - static:/static
+      - media:/media
+    depends_on:
+      - backend
+
+  backend:
+    image: sentinelx10/kittygram-2-backend
+    environment:
+      - DB_HOST=${DB_HOST}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+    depends_on:
+      - postgres
+    volumes:
+      - static:/backend_static
+      - media:/media
+
+  frontend:
+    image: sentinelx10/kittygram-2-frontend
+    volumes:
+      - static:/frontend_static
+    command: cp -r /app/build/. /frontend_static/
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_NAME=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  media:
+  static:
+  pg_data:

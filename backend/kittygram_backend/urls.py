@@ -20,5 +20,7 @@ urlpatterns = [
     path('api/', include('djoser.urls.authtoken')),  # Работа с токенами
 ]
 
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) # Static files
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
