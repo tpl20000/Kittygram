@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: sentinelx10/kittygram-2-gateway
+    image: sentinelx10/kittygram-gateway
     ports:
       - "9000:80"
     volumes:
@@ -10,7 +10,7 @@ services:
       - backend
 
   backend:
-    image: sentinelx10/kittygram-2-backend
+    image: sentinelx10/kittygram-backend
     environment:
       - DB_HOST=${DB_HOST}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -22,7 +22,7 @@ services:
       - media:/media
 
   frontend:
-    image: sentinelx10/kittygram-2-frontend
+    image: sentinelx10/kittygram-frontend
     volumes:
       - static:/frontend_static
     command: cp -r /app/build/. /frontend_static/
