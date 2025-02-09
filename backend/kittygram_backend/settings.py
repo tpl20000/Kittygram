@@ -1,17 +1,16 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
-SECRET_KEY = os.getenv('DJANGO_SECRET', default=get_random_secret_key())
+SECRET_KEY = 'django-insecure-cg6*%6d51ef8f#4!r3*$vmxm4)abgjw8mo!4y-q*uq1!4$-89$'
 
-DEBUG = True == os.getenv('DEBUG_EN', default='False')
+DEBUG = os.getenv('DEBUG_EN', default='False')
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOST', '127.0.0.1').split(',')
+ALLOWED_HOSTS = ['*']
 
 STATIC_ROOT = "/app/collected_static"
 
@@ -65,7 +64,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER'),  # Database username
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),  # Database user password
         'HOST': os.getenv('DB_HOST'),  # Host IP (forwarded from a Docker container)
-        'PORT': os.getenv('DB_PORT'),  # Port
+        'PORT': '5432',  # Port
     }
 }
 

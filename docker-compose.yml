@@ -12,10 +12,9 @@ services:
   backend:
     build: ./backend
     environment:
+      - DB_HOST=${DB_HOST}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_USER=${DB_USER}
-      - DJANGO_SECRET=${DJANGO_SECRET}
-      - ALLOWED_HOST=${ALLOWED_HOST}
     depends_on:
       - postgres
     volumes:
