@@ -14,8 +14,5 @@ RUN pip install -r requirements.txt --no-cache-dir
 # Copy the application code
 COPY . .
 
-# Make start script executable
-RUN chmod +x dockerrun.sh
-
 # Run the command to start the server
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "kittygram_backend.wsgi"]
