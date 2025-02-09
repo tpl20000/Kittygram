@@ -164,4 +164,7 @@ jobs:
       with:
         to: ${{ secrets.TELEGRAM_ADRESSEE }}
         token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: Kittygram built and deployed successfully!
+        message: "Kittygram deploy success!\n
+          Commit author: ${{ github.actor }}\n
+          Commit message: ${{ github.event.commits[0].message }}\n
+          https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
