@@ -17,5 +17,5 @@ COPY . .
 # Make start script executable
 RUN chmod +x dockerrun.sh
 
-# Execute the start server script
-CMD ["/app/dockerrun.sh"]
+# Run the command to start the server
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "kittygram_backend.wsgi"]
