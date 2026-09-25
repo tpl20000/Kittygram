@@ -27,6 +27,7 @@ jobs:
       TF_VAR_YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
       TF_VAR_YC_IMAGE_ID: ${{ secrets.YC_IMAGE_ID }}
       TF_VAR_YC_SERVICER_ID: ${{ secrets.YC_SERVICER_ID }}
+      TF_VAR_ssh_public_key: ${{ secrets.YC_SSH_PUBKEY }}
       
     steps:
     - name: Checkout Repository
