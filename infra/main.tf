@@ -1,33 +1,3 @@
-terraform {
-  required_providers {
-    yandex = {
-      source = "yandex-cloud/yandex"
-      }
-  }
-  backend "s3" {
-    endpoint                    = { 
-      s3 = "https://storage.yandexcloud.net"
-      }
-    bucket                      = "kittygram-bucket-tfstate"
-    region                      = "ru-central1"
-    key                         = "tf-state.tfstate"
-    workspace_key_prefix        = "tf-state"
-    use_path_style              = true
-    skip_metadata_api_check     = true
-    skip_region_validation      = true
-    skip_credentials_validation = true
-    skip_requesting_account_id  = true
-    skip_s3_checksum            = true
-  }
-}
-
-provider "yandex" { 
-  zone = "ru-central1-a"
-  token = var.YC_IAM_TOKEN
-  cloud_id = var.YC_CLOUD_ID
-  folder_id = var.YC_FOLDER_ID
-}
-
 # Сеть и подсеть
 resource "yandex_vpc_network" "net" {}
 
@@ -92,37 +62,3 @@ resource "yandex_storage_bucket" "kittygram-bucket-2026" {
   bucket     = "kittygram-bucket-2026"
   folder_id  = var.YC_FOLDER_ID
 }
-
-# Переменная и Output для интеграции с CI/CD
-variable "ssh_public_key" { 
-  type = string 
-}
-
-variable "YC_CLOUD_ID" {
-  type      = string
-  sensitive = true
-}
-
-variable "YC_FOLDER_ID" {
-  type      = string
-  sensitive = true
-}
-
-variable "YC_IMAGE_ID" {
-  type      = string
-  sensitive = true
-}
-
-variable "YC_SERVICER_ID" {
-  type      = string
-  sensitive = true
-}
-
-variable "YC_IAM_TOKEN" {
-  type      = string
-  sensitive = true
-}
-
-output "vm_public_ip" { 
-  value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
-  }
