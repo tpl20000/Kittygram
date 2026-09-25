@@ -1,12 +1,14 @@
 terraform {
-    required_version = "< 1.6.0"
+    required_version = ">= 1.10.5"
   required_providers {
     yandex = {
       source = "yandex-cloud/yandex"
       }
   }
   backend "s3" {
-    endpoint                    = "https://storage.yandexcloud.net"
+    endpoints = { 
+      s3 = "https://storage.yandexcloud.net" 
+    }
     bucket                      = "kittygram-bucket-tfstate"
     region                      = "ru-central1"
     key                         = "tf-state.tfstate"
