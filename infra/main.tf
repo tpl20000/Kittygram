@@ -1,20 +1,19 @@
 terraform {
-  required_version = ">= 1.3.0"
   required_providers {
     yandex = {
-      source  = "yandex-cloud/yandex"
-      version = ">= 0.80.0"
-    }
+      source = "yandex-cloud/yandex"
+      }
   }
-
   backend "s3" {
-    endpoints = {
+    endpoints                   = { 
       s3 = "https://storage.yandexcloud.net"
-    }
-    bucket = "kittygram-bucket"
-    region = "ru-central1"
-    key    = "tf-state.tfstate"
-
+      }
+    bucket                      = "kittygram-bucket-tfstate"
+    region                      = "ru-central1"
+    key                         = "tf-state.tfstate"
+    workspace_key_prefix        = "tf-state"
+    use_path_style              = true
+    skip_metadata_api_check     = true
     skip_region_validation      = true
     skip_credentials_validation = true
     skip_requesting_account_id  = true
@@ -22,102 +21,108 @@ terraform {
   }
 }
 
-provider "yandex" {
+provider "yandex" { 
   zone = "ru-central1-a"
+  token = var.YC_IAM_TOKEN
+  cloud_id = var.YC_CLOUD_ID
+  folder_id = var.YC_FOLDER_ID
 }
 
-resource "yandex_vpc_network" "this" {
-  name = "vpc-network"
-}
+# Сеть и подсеть
+resource "yandex_vpc_network" "net" {}
 
-resource "yandex_vpc_subnet" "this" {
-  name           = "vpc-subnet"
+resource "yandex_vpc_subnet" "sub" {
   zone           = "ru-central1-a"
-  network_id     = yandex_vpc_network.this.id
-  v4_cidr_blocks = ["10.0.0.0/24"]
+  network_id     = yandex_vpc_network.net.id
+  v4_cidr_blocks = ["10.128.0.0/24"]
 }
 
-resource "yandex_vpc_security_group" "this" {
-  name        = "vm-security-group"
-  network_id  = yandex_vpc_network.this.id
+# Группа безопасности
+resource "yandex_vpc_security_group" "sg" {
+  network_id = yandex_vpc_network.net.id
 
   ingress {
-    protocol       = "TCP"
-    description    = "Allow SSH"
+    protocol = "TCP"
     v4_cidr_blocks = ["0.0.0.0/0"]
-    port           = 22
-  }
-
-  ingress {
-    protocol       = "TCP"
-    description    = "Allow HTTP"
-    v4_cidr_blocks = ["0.0.0.0/0"]
-    port           = 80
-  }
-
-  egress {
-    protocol       = "ANY"
-    description    = "Allow all outbound traffic"
-    v4_cidr_blocks = ["0.0.0.0/0"]
-    from_port      = 0
-    to_port        = 65535
-  }
-}
-
-resource "yandex_compute_instance" "this" {
-  name        = "web-vm"
-  platform_id = "standard-v3"
-  zone        = "ru-central1-a"
-
-  resources {
-    cores  = 2
-    memory = 2
-  }
-
-  boot_disk {
-    initialize_params {
-      image_id = "fd80le9bkv356ha1po6p"
-      size     = 20
+    port = 22 
     }
-  }
+
+  ingress {
+    protocol = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port = 80 
+    }
+
+  egress  { 
+    protocol = "ANY"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    from_port = 0
+    to_port = 65535 
+    }
+}
+
+# Виртуальная машина
+resource "yandex_compute_instance" "vm" {
+  zone        = "ru-central1-a"
+  service_account_id = var.YC_SERVICER_ID
+  resources   { 
+    cores = 2
+    memory = 2
+    }
+
+  boot_disk   {
+    initialize_params { 
+      image_id = var.YC_IMAGE_ID
+      } 
+    } 
 
   network_interface {
-    subnet_id          = yandex_vpc_subnet.this.id
+    subnet_id          = yandex_vpc_subnet.sub.id
     nat                = true
-    security_group_ids = [yandex_vpc_security_group.this.id]
+    security_group_ids = [yandex_vpc_security_group.sg.id]
   }
 
   metadata = {
-    ssh-keys = "ubuntu:${file("~/.ssh/id_rsa.pub")}" # Замените на ваш публичный ключ или переменную
+    user-data = "#cloud-config\nusers:\n  - name: ubuntu\n    groups: sudo\n    shell: /bin/bash\n    sudo: ['ALL=(ALL) NOPASSWD:ALL']\n    ssh_authorized_keys:\n      - ${var.ssh_public_key}"
   }
 }
 
-resource "yandex_iam_service_account" "sa" {
-  name        = "bucket-manager-sa"
-  description = "Service account for managing S3 bucket"
+# Новый S3 бакет для приложения
+resource "yandex_storage_bucket" "kittygram-bucket-2026" {
+  bucket     = "kittygram-bucket-2026"
+  folder_id  = var.YC_FOLDER_ID
 }
 
-resource "yandex_resourcemanager_folder_iam_member" "sa_editor" {
-  folder_id = var.yc_folder_id
-  role      = "storage.editor"
-  member    = "serviceAccount:${yandex_iam_service_account.sa.id}"
+# Переменная и Output для интеграции с CI/CD
+variable "ssh_public_key" { 
+  type = string 
 }
 
-resource "yandex_iam_service_account_static_access_key" "sa_static_key" {
-  service_account_id = yandex_iam_service_account.sa.id
-  description        = "Static access key for object storage"
+variable "YC_CLOUD_ID" {
+  type      = string
+  sensitive = true
 }
 
-resource "yandex_storage_bucket" "new_bucket" {
-  access_key = yandex_iam_service_account_static_access_key.sa_static_key.access_key
-  secret_key = yandex_iam_service_account_static_access_key.sa_static_key.secret_key
-  bucket     = "my-new-application-data-bucket" # Имя бакета должно быть глобально уникальным
-
-  depends_on = [yandex_resourcemanager_folder_iam_member.sa_editor]
+variable "YC_FOLDER_ID" {
+  type      = string
+  sensitive = true
 }
 
-variable "yc_folder_id" {
-  type        = string
-  description = "Yandex Cloud Folder ID"
-  default     = ""
+variable "YC_IMAGE_ID" {
+  type      = string
+  sensitive = true
 }
+
+variable "YC_SERVICER_ID" {
+  type      = string
+  sensitive = true
+}
+
+variable "YC_IAM_TOKEN" {
+  type      = string
+  sensitive = true
+}
+
+output "vm_public_ip" { 
+  value = yandex_compute_instance.vm.network_interface.0.nat_ip_address
+  }
