@@ -1,3 +1,4 @@
 .env
 .DS_Store
 /infra/.terraform
+infra/.terraform.lock.hcl

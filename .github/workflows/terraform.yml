@@ -22,7 +22,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      YC_TOKEN: ${{ secrets.YC_TOKEN }}
+      YC_IAM_TOKEN: ${{ secrets.YC_IAM_TOKEN }}
       YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
       YC_FOLDER_ID: ${{ secrets.YC_FOLDER_ID }}
       YC_IMAGE_ID: ${{ secrets.YC_IMAGE_ID }}
